@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import CountdownTimer from './CountdownTimer';
-import { db } from '../firebase';
+import DialogComponent from './DialogComponent';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [taskInput, setTaskInput] = useState('');
   const [dueDateInput, setDueDateInput] = useState('');
-  const [id,setId] = useState(0);
+  const [id, setId] = useState(0);
+  const [dialogRender,setDialogRender] = useState(false);
 
   const handleAddTask = () => {
     if (taskInput.trim() !== '') {
@@ -19,9 +20,9 @@ function App() {
       }
 
       const dueDate = dueDateInput !== '' ? selectedDueDate : null;
-    
-      setTasks([...tasks, { name: taskInput, completion: 0, dueDate, id:id  }]);
-      setId((prev)=>prev+1);
+
+      setTasks([...tasks, { name: taskInput, completion: 0, dueDate, id: id }]);
+      setId((prev) => prev + 1);
       setTaskInput('');
 
     }
@@ -37,18 +38,29 @@ function App() {
     let newTasks = tasks.map((task, i) => {
       if (i === index) {
         if (parseInt(newCompletion) === 100) {
-          return null; 
+          return null;
         }
         return { ...task, completion: parseInt(newCompletion) };
       }
       return task;
     })
-    const filteredTask = newTasks.filter(task => task !== null); 
-  
+    const filteredTask = newTasks.filter(task => task !== null);
+
     setTasks(filteredTask);
     console.log(filteredTask);
   };
-  
+
+  useEffect(() => {
+    const handleKeyUp = (event) => {
+      if (event.ctrlKey && event.altKey && event.key === 'o') {
+        
+        setDialogRender((prev) => !prev)
+      }
+    }
+    window.addEventListener('keyup', handleKeyUp)
+    return () => window.removeEventListener('keyup',handleKeyUp)
+  }, [])
+
 
 
 
@@ -72,7 +84,8 @@ function App() {
           <button onClick={handleAddTask}>Add Task</button>
         </div>
       </div>
-      <div className="App">
+      {dialogRender ? <DialogComponent /> : (
+        <div className="App">
         <ul>
           {tasks.map((task, index) => (
             <li key={index} className='task'>
@@ -101,8 +114,8 @@ function App() {
             </li>
           ))}
         </ul>
-      </div>
-    </div>
+      </div> )}
+    </div> 
   );
 }
 
